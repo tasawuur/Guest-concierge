@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2a1e17">
+<title>The Walnut · Guest Concierge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ivory:#F4F0E5;--saffron:#C4A45B;--walnut:#49382D;--deep:#2A1E17;--hi:#D9826F;
+  --glass:rgba(42,30,23,.55);--glass2:rgba(244,240,229,.10);--line:rgba(244,240,229,.18);
+  --sky1:#E9C98A;--sky2:#C98E5A;--sky3:#7A5238;--m1:#5b4232;--m2:#3b2a20;
+}
+/* season base (matches the website: Oct-Nov autumn, Dec-Feb snow, Mar-Jun spring, Jul-Sep summer) */
+body[data-season=autumn]{--sky1:#E9C98A;--sky2:#C98E5A;--sky3:#7A5238;--hi:#D9826F}
+body[data-season=winter]{--sky1:#DDD7CE;--sky2:#ABA093;--sky3:#5E4F44;--m1:#8a7a6b;--m2:#5d4c3f;--hi:#BFD3DB}
+body[data-season=spring]{--sky1:#E6DDA9;--sky2:#B5A86F;--sky3:#64593A;--m1:#6b5d40;--m2:#443826;--hi:#E8B4C0}
+body[data-season=summer]{--sky1:#F2E3A2;--sky2:#D2B56A;--sky3:#7C6B3E;--m1:#5d5a3a;--m2:#3b3d27;--hi:#B4C072}
+/* weather overrides */
+body[data-theme=cloudy]{--sky1:#A89A8A;--sky2:#7C6B5C;--sky3:#4A3A2F;--m1:#4d3a2d;--m2:#33251c}
+body[data-theme=rain]{--sky1:#6E675F;--sky2:#4B443D;--sky3:#2C2520;--m1:#3a2d24;--m2:#271c16}
+body[data-theme=storm]{--sky1:#4A4540;--sky2:#2E2A27;--sky3:#1C1815;--m1:#2f241d;--m2:#1d1510}
+body[data-theme=snow]{--sky1:#DCD6CD;--sky2:#A89E92;--sky3:#5B4D42;--m1:#8a7a6b;--m2:#5d4c3f;--hi:#BFD3DB}
+body[data-theme=fog]{--sky1:#BDB3A5;--sky2:#8F8374;--sky3:#5A4E42;--m1:#6c5b4c;--m2:#4a3b2f}
+body[data-theme=night]{--sky1:#1B1612;--sky2:#2E221A;--sky3:#3E2E22;--m1:#2a1e17;--m2:#170f0a}
+*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font:400 15px/1.5 Inter,system-ui,sans-serif;color:var(--ivory);background:var(--sky3);overflow:hidden}
+.sky{position:fixed;inset:0;background:linear-gradient(180deg,var(--sky1),var(--sky2) 55%,var(--sky3));z-index:-3}
+.sun{position:fixed;top:11%;right:12%;width:84px;height:84px;border-radius:50%;z-index:-2;background:radial-gradient(circle,#fff6d8 0,#f3d48a 40%,transparent 70%);opacity:.85}
+body[data-theme=night] .sun{background:radial-gradient(circle,#f4f0e5 0,#cfc6b4 30%,transparent 68%);width:56px;height:56px;opacity:.8}
+body[data-theme=cloudy] .sun,body[data-theme=fog] .sun{opacity:.35}
+body[data-theme=rain] .sun,body[data-theme=storm] .sun,body[data-theme=snow] .sun{opacity:0}
+.mtn{position:fixed;left:0;right:0;bottom:0;height:46vh;z-index:-1;pointer-events:none}
+canvas{position:fixed;inset:0;z-index:40;pointer-events:none}
+.app{height:100dvh;max-width:560px;margin:0 auto;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top) + 8px) 12px 0;position:relative;z-index:1}
+.glass{background:var(--glass);border:1px solid var(--line);-webkit-backdrop-filter:blur(18px) saturate(140%);backdrop-filter:blur(18px) saturate(140%);box-shadow:0 10px 30px rgba(20,12,8,.25),inset 0 1px 0 rgba(255,255,255,.12)}
+.bar{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:999px;flex:none}
+.brand{font:600 16px 'Cormorant Garamond',serif;letter-spacing:.14em;flex:1;line-height:1.1}
+.brand small{display:block;font:500 9px Inter;letter-spacing:.2em;color:var(--saffron);margin-top:2px}
+.wx{padding:6px 12px;border-radius:999px;background:var(--glass2);font-weight:500;font-size:12.5px;white-space:nowrap;text-align:right;line-height:1.25}
+.wx small{display:block;font-size:10.5px;opacity:.75}
+.chat{flex:1;overflow-y:auto;padding:16px 2px 12px;display:flex;flex-direction:column;gap:12px;scroll-behavior:smooth}
+.m{display:flex;gap:8px;max-width:92%;animation:in .35s ease both}
+.m.bot{align-self:flex-start}.m.me{align-self:flex-end;flex-direction:row-reverse}
+@keyframes in{from{opacity:0;transform:translateY(8px)}}
+.av{width:30px;height:30px;flex:none;border-radius:50%;background:var(--walnut);border:1px solid var(--saffron);box-shadow:0 0 0 2px color-mix(in srgb,var(--hi) 40%,transparent);display:grid;place-items:center;font:600 14px 'Cormorant Garamond',serif;color:var(--saffron);align-self:flex-end}
+.b{padding:10px 14px;border-radius:18px 18px 18px 5px;font-size:14.5px;min-width:0}
+.me .b{border-radius:18px 18px 5px 18px;background:var(--saffron);color:var(--deep);font-weight:500;border:0}
+.b h3{font:600 20px 'Cormorant Garamond',serif;margin-bottom:4px}
+.b p{margin:2px 0 8px;color:rgba(244,240,229,.88)}
+.b p:last-child{margin-bottom:0}
+.typing{display:flex;gap:5px;padding:14px 16px}.typing i{width:6px;height:6px;border-radius:50%;background:var(--ivory);opacity:.5;animation:bl 1s infinite}.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes bl{50%{opacity:1;transform:translateY(-3px)}}
+.row{display:flex;justify-content:space-between;gap:14px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
+.row:last-of-type{border:0}.row em{font-style:normal;color:var(--saffron);text-align:right}
+.item{padding:8px 0;border-bottom:1px solid var(--line)}.item:last-child{border:0}
+.item b{font:600 17px 'Cormorant Garamond',serif;display:block}.item span{font-size:13px;color:rgba(244,240,229,.82)}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin:8px 0}
+.chip{all:unset;cursor:pointer;padding:8px 13px;border-radius:999px;border:1px solid var(--line);background:var(--glass2);font-size:13px}
+.chip[aria-pressed=true]{background:var(--saffron);color:var(--deep);border-color:var(--saffron);font-weight:600}
+.btn{all:unset;box-sizing:border-box;cursor:pointer;display:block;text-align:center;margin-top:8px;padding:11px 16px;border-radius:999px;font-weight:600;font-size:13.5px;background:var(--saffron);color:var(--deep)}
+.btn.alt{background:var(--glass2);color:var(--ivory);border:1px solid var(--line)}
+a.l{color:var(--saffron)}
+.copy{all:unset;cursor:pointer;font-size:12px;color:var(--ivory);text-decoration:underline;margin-left:6px;opacity:.8}
+/* quick actions */
+.qa-wrap{flex:none;margin:0 -12px}
+.qa-row{display:flex;gap:10px;overflow-x:auto;padding:6px 14px 10px;scroll-snap-type:x proximity;scrollbar-width:none}
+.qa-row::-webkit-scrollbar{display:none}
+.qa{all:unset;box-sizing:border-box;cursor:pointer;position:relative;overflow:hidden;flex:none;scroll-snap-align:start;width:104px;height:84px;padding:11px 10px;border-radius:18px;
+  display:flex;flex-direction:column;justify-content:space-between;
+  background:var(--tx),linear-gradient(150deg,var(--c1),var(--c2));
+  border:1px solid rgba(196,164,91,.75);
+  box-shadow:0 8px 16px rgba(15,9,6,.35),inset 0 1px 0 rgba(255,255,255,.28),inset 0 0 0 3px rgba(42,30,23,.25),0 0 14px color-mix(in srgb,var(--hi) 28%,transparent);
+  transition:transform .15s}
+.qa:before{content:"";position:absolute;inset:0;background:linear-gradient(160deg,rgba(255,255,255,.22),transparent 45%);pointer-events:none}
+.qa:active{transform:scale(.95)}
+.qa svg{width:22px;height:22px;stroke:var(--ivory);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;position:relative;filter:drop-shadow(0 1px 2px rgba(0,0,0,.4))}
+.qa b{font:600 15.5px/1.05 'Cormorant Garamond',serif;position:relative;text-shadow:0 1px 2px rgba(0,0,0,.5)}
+.t1{--c1:#7a5438;--c2:#3f2c20;--tx:repeating-linear-gradient(45deg,rgba(196,164,91,.34) 0 1px,transparent 1px 9px),repeating-linear-gradient(-45deg,rgba(196,164,91,.34) 0 1px,transparent 1px 9px)}
+.t2{--c1:#8c4a38;--c2:#47261e;--tx:radial-gradient(rgba(244,240,229,.34) 1.2px,transparent 1.7px) 0 0/9px 9px}
+.t3{--c1:#6e4a30;--c2:#38261a;--tx:repeating-linear-gradient(92deg,rgba(0,0,0,.2) 0 2px,transparent 2px 5px,rgba(255,255,255,.08) 5px 6px,transparent 6px 12px)}
+.t4{--c1:#8a6a3a;--c2:#4a3520;--tx:repeating-linear-gradient(0deg,rgba(244,240,229,.14) 0 2px,transparent 2px 6px),repeating-linear-gradient(90deg,rgba(0,0,0,.16) 0 2px,transparent 2px 6px)}
+.t5{--c1:#7d5a44;--c2:#3c2a1f;--tx:repeating-radial-gradient(circle at 0 100%,transparent 0 6px,rgba(244,240,229,.2) 6px 7px)}
+.t6{--c1:#9a6a3e;--c2:#4c321f;--tx:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 .96 0 0 0 0 .92 0 0 0 0 .8 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='90' height='90' filter='url(%23n)'/%3E%3C/svg%3E")}
+/* composer */
+.comp{flex:none;display:flex;gap:8px;align-items:center;padding:7px 7px 7px 16px;border-radius:999px;margin-bottom:calc(env(safe-area-inset-bottom) + 10px)}
+.comp input{flex:1;min-width:0;background:none;border:0;color:var(--ivory);font:inherit;font-size:15px;outline:0;padding:8px 0}
+.comp input::placeholder{color:rgba(244,240,229,.55)}
+.send{all:unset;cursor:pointer;width:40px;height:40px;border-radius:50%;background:var(--saffron);display:grid;place-items:center;flex:none}
+.send svg{width:18px;height:18px;stroke:var(--deep);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.comp:focus-within{border-color:var(--saffron)}
+.qa:focus-visible,.chip:focus-visible,.btn:focus-visible,.send:focus-visible,.copy:focus-visible,a:focus-visible{outline:2px solid var(--saffron);outline-offset:2px}
+.toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 70px);transform:translate(-50%,-12px);opacity:0;z-index:50;padding:9px 16px;border-radius:999px;font-size:13px;transition:.3s;pointer-events:none}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body data-season="autumn" data-theme="clear">
+<div class="sky"></div><div class="sun"></div>
+<svg class="mtn" viewBox="0 0 600 300" preserveAspectRatio="none" aria-hidden="true">
+  <path d="M0 300V150L70 80l55 60 70-100 80 110 60-50 90 90 50-40 120 110v50Z" fill="var(--m1)" opacity=".75"/>
+  <path d="M0 300V210l80-45 60 40 90-70 100 80 80-50 110 70 80-30v95Z" fill="var(--m2)"/>
+  <path d="M0 252l60 3 30-28 6 28 30 0 24-40 8 40 90 6 28-34 8 34 120 8 30-30 6 30 160 4v70H0Z" fill="#150d08" opacity=".7"/>
+</svg>
+<canvas id="fx"></canvas>
+
+<div class="app">
+  <header class="bar glass">
+    <svg width="38" height="38" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="23" fill="#49382D" stroke="#C4A45B" stroke-width="1.2"/><circle cx="24" cy="24" r="19" fill="none" stroke="#C4A45B" stroke-width=".6" stroke-dasharray="1.2 2"/><path d="M24 9l7 7-7 7-7-7zM24 25l7 7-7 7-7-7z" fill="none" stroke="#F4F0E5" stroke-width="1.2"/><path d="M24 17v14M21 21l3-4 3 4M20 27l4-5 4 5" stroke="#C4A45B" stroke-width="1" fill="none"/></svg>
+    <div class="brand">THE WALNUT<small>GUEST CONCIERGE</small></div>
+    <div class="wx" id="wx" aria-live="polite">…</div>
+  </header>
+
+  <main class="chat" id="chat" aria-live="polite"></main>
+
+  <div class="qa-wrap"><div class="qa-row" id="qa" aria-label="Quick actions"></div></div>
+
+  <div class="comp glass">
+    <input id="in" type="text" placeholder="Type a message…" autocomplete="off" enterkeyhint="send" aria-label="Message the concierge">
+    <button class="send" id="go" aria-label="Send"><svg viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></svg></button>
+  </div>
+</div>
+<div class="toast glass" id="toast" role="status"></div>
+
+<script>
+/* ============ EDIT THESE DETAILS ============ */
+const CONFIG={
+  whatsapp:"91XXXXXXXXXX",          // reception WhatsApp, country code first, no + or spaces
+  phone:"+91 XXXXX XXXXX",
+  email:"hello@example.com",
+  wifi:{name:"TheWalnut-Guest",password:"Set password here"},
+  timings:[["Breakfast","7:30 – 10:00"],["Lunch","12:30 – 14:30"],["Dinner","19:30 – 22:00"],["Check-in","From 14:00"],["Check-out","By 11:00"]], // sample times
+  offers:[{t:"Your first offer",d:"Add a seasonal offer, package or discount here."}],
+  policies:[["Check-in & check-out","Edit your timings and ID requirements here."],["Quiet hours","Edit your quiet-hours rule here."],["Cancellation","Edit your cancellation terms here."],["Smoking & pets","Edit your house rules here."]],
+  places:[
+    ["Betaab Valley","A green meadow valley beside the Lidder river, a popular day visit from Pahalgam."],
+    ["Mattan Temple","An ancient temple site with a sacred spring, a short drive from Pahalgam."],
+    ["Sinthan Top","A high mountain pass with wide views, on the road between Anantnag and Kishtwar."]],
+  lat:34.016,lon:75.315
+};
+/* ============================================ */
+const $=s=>document.querySelector(s);
+const IC={
+ wifi:'<path d="M2 9a15 15 0 0 1 20 0M5.5 12.5a10 10 0 0 1 13 0M9 16a5 5 0 0 1 6 0"/><circle cx="12" cy="19.5" r=".8"/>',
+ clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+ bell:'<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20a2 2 0 0 0 4 0"/>',
+ compass:'<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>',
+ phone:'<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/>',
+ tag:'<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1"/>',
+ scroll:'<path d="M6 3h11a2 2 0 0 1 2 2v13a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3V4M9 8h7M9 12h7M9 16h5"/>'};
+const ACTIONS=[
+ ["wifi","Wi‑Fi","wifi","t1"],["clock","Timings","timings","t3"],["bell","Request a service","services","t2"],
+ ["compass","Around Pahalgam","guide","t5"],["phone","Contact us","contact","t4"],["tag","Offers","offers","t6"],["scroll","House policies","policies","t1"]];
+ACTIONS.forEach(([i,l,k,t])=>{const b=document.createElement('button');b.className='qa '+t;
+ b.innerHTML=`<svg viewBox="0 0 24 24">${IC[i]}</svg><b>${l}</b>`;b.onclick=()=>{say(l);reply(k)};$('#qa').appendChild(b)});
+
+/* ----- chat engine ----- */
+const chat=$('#chat');let room='';try{room=localStorage.getItem('walnut-room')||''}catch(e){}
+function scroll(){chat.scrollTop=chat.scrollHeight}
+function say(t){const d=document.createElement('div');d.className='m me';const b=document.createElement('div');b.className='b';b.textContent=t;d.appendChild(b);chat.appendChild(d);scroll()}
+function bot(html,delay=650){const d=document.createElement('div');d.className='m bot';
+ d.innerHTML=`<div class="av">W</div><div class="b glass"><div class="typing"><i></i><i></i><i></i></div></div>`;chat.appendChild(d);scroll();
+ setTimeout(()=>{d.querySelector('.b').innerHTML=html;scroll()},delay);return d}
+const rows=a=>a.map(([x,y])=>`<div class="row"><span>${x}</span><em>${y}</em></div>`).join('');
+const WA=(t)=>`https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(t)}`;
+const R={
+ wifi:()=>`<h3>Wi‑Fi</h3>${rows([["Network",CONFIG.wifi.name],["Password",`${CONFIG.wifi.password}<button class="copy" data-copy="${CONFIG.wifi.password}">Copy</button>`]])}`,
+ timings:()=>`<h3>Timings</h3>${rows(CONFIG.timings)}`,
+ guide:()=>`<h3>Around Pahalgam</h3>${CONFIG.places.map(([a,b])=>`<div class="item"><b>${a}</b><span>${b}</span></div>`).join('')}<p style="margin-top:8px">Ask reception about timings, road conditions and transport.</p><button class="btn" data-act="services">Ask reception to arrange a trip</button>`,
+ contact:()=>`<h3>Contact us</h3>${rows([["Reception",`<a class="l" href="tel:${CONFIG.phone.replace(/\s/g,'')}">${CONFIG.phone}</a>`],["Email",`<a class="l" href="mailto:${CONFIG.email}">${CONFIG.email}</a>`]])}<a class="btn" href="https://wa.me/${CONFIG.whatsapp}" target="_blank" rel="noopener">Chat on WhatsApp</a>`,
+ offers:()=>`<h3>Offers</h3>${CONFIG.offers.map(o=>`<div class="item"><b>${o.t}</b><span>${o.d}</span></div>`).join('')}`,
+ policies:()=>`<h3>House policies</h3>${CONFIG.policies.map(([a,b])=>`<div class="item"><b>${a}</b><span>${b}</span></div>`).join('')}`,
+ services:()=>{const S=["Housekeeping","Fresh towels","Drinking water","Kahwa or tea","Room heater","Laundry","Maintenance","Late check-out","Something else"];
+  return `<h3>Request a service</h3><p>Choose what you need. It goes to reception on WhatsApp.</p><div class="chips">${S.map(s=>`<button class="chip" aria-pressed="false" data-s="${s}">${s}</button>`).join('')}</div><button class="btn" data-send="1">Send to reception</button>`}
+};
+function reply(k){if(k==='services'&&!room){bot(`<p>Which room are you in? Type your room number and I’ll note it.</p>`);need='services';return}
+ bot(R[k]())}
+let need=null;
+function route(t){const s=t.toLowerCase();
+ if(/^(hi|hello|hey|salaam|salam|assalam)/.test(s))return bot(`<p>Salaam! How can I help you today?</p>`);
+ if(/wi-?fi|internet|password|network/.test(s))return reply('wifi');
+ if(/breakfast|lunch|dinner|check.?in|check.?out|timing|meal|food|time/.test(s))return reply('timings');
+ if(/towel|clean|housekeep|water|tea|kahwa|heater|laundry|maintenance|service|blanket|repair/.test(s))return reply('services');
+ if(/visit|place|trip|valley|betaab|mattan|sinthan|sight|around|nearby|see/.test(s))return reply('guide');
+ if(/call|phone|whatsapp|contact|email|reception|number/.test(s))return reply('contact');
+ if(/offer|discount|deal|package/.test(s))return reply('offers');
+ if(/polic|rule|smok|pet|cancel|quiet/.test(s))return reply('policies');
+ bot(`<p>I’ll pass this to reception so a person can help.</p><a class="btn" target="_blank" rel="noopener" href="${WA(`The Walnut${room?` · Room ${room}`:''}\n${t}`)}">Send to reception on WhatsApp</a>`)}
+function submit(){const i=$('#in'),t=i.value.trim();if(!t)return;i.value='';say(t);
+ if(!room&&/^[A-Za-z]?\d{1,4}[A-Za-z]?$/.test(t)){room=t;try{localStorage.setItem('walnut-room',room)}catch(e){}
+  bot(`<p>Thank you, room ${t} noted.</p>`);if(need){const n=need;need=null;setTimeout(()=>reply(n),900)}return}
+ route(t)}
+$('#go').onclick=submit;$('#in').addEventListener('keydown',e=>e.key==='Enter'&&submit());
+chat.addEventListener('click',e=>{const t=e.target;
+ if(t.dataset.copy){navigator.clipboard?.writeText(t.dataset.copy).then(()=>toast('Copied'),()=>toast('Copy failed'));return}
+ if(t.dataset.act){say('Arrange a trip');reply(t.dataset.act);return}
+ if(t.classList.contains('chip')){t.setAttribute('aria-pressed',t.getAttribute('aria-pressed')!=='true');return}
+ if(t.dataset.send){const w=t.closest('.b'),p=[...w.querySelectorAll('.chip[aria-pressed=true]')].map(c=>c.dataset.s);
+  if(!p.length){toast('Pick at least one service first.');return}
+  window.open(WA(`The Walnut · Room ${room}\nRequest: ${p.join(', ')}`),'_blank');say(p.join(', '));
+  bot(`<p>Opening WhatsApp. Tap send there and reception will get your request.</p>`)}});
+let tt;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),2400)}
+
+/* ----- season + weather theme ----- */
+const MOODS={clear:["Clear","Sunlit mountains."],cloudy:["Cloudy","Soft clouds over the valley."],fog:["Foggy","Mist in the valley. Drive carefully."],
+ rain:["Rain","Rain outside. Ask us for hot kahwa."],snow:["Snow","Snowfall in Pahalgam. Stay warm inside."],storm:["Storm","Thunderstorm nearby. Please stay indoors."],night:["Clear night","A quiet night in the mountains."]};
+const SEAS={autumn:"Autumn",winter:"Winter",spring:"Spring",summer:"Summer"};
+function season(){const m=new Date().getMonth()+1;return m===12||m<=2?'winter':m<=6?'spring':m<=9?'summer':'autumn'}
+function codeToMood(c,day){if(c===45||c===48)return'fog';if(c>=95)return'storm';if((c>=71&&c<=77)||c===85||c===86)return'snow';
+ if((c>=51&&c<=67)||(c>=80&&c<=82))return'rain';if(c>=2)return'cloudy';return day?'clear':'night'}
+let FX='leaf',SEA=season();
+const qs=new URLSearchParams(location.search);
+if(SEAS[qs.get('season')])SEA=qs.get('season');
+function apply(m,temp){document.body.dataset.theme=m;document.body.dataset.season=SEA;
+ $('#wx').innerHTML=`${temp!=null?Math.round(temp)+'° · ':''}${MOODS[m][0]}<small>${SEAS[SEA]}</small>`;
+ FX=m==='rain'||m==='storm'?'rain':m==='snow'||SEA==='winter'?'snow':SEA==='autumn'?'leaf':SEA==='spring'?'petal':'mote';initFX();return m}
+const hr=new Date().getHours();let first=true;
+function greet(m){const g=hr<5?'Salaam':hr<12?'Good morning':hr<17?'Good afternoon':'Good evening';
+ bot(`<p><strong>${g}, welcome to The Walnut.</strong></p><p>${MOODS[m][1]} Tap a quick action below or type your question.</p>${room?'':'<p>Which room are you in? Type your room number.</p>'}`,500)}
+let mood0=qs.get('weather');
+if(mood0&&MOODS[mood0]){greet(apply(mood0,null))}else{
+ let m=apply(hr>=19||hr<6?'night':'clear',null);greet(m);
+ fetch(`https://api.open-meteo.com/v1/forecast?latitude=${CONFIG.lat}&longitude=${CONFIG.lon}&current=temperature_2m,weather_code,is_day`)
+  .then(r=>r.json()).then(j=>{const c=j.current;apply(codeToMood(c.weather_code,c.is_day),c.temperature_2m)}).catch(()=>{})}
+
+/* ----- falling leaves, petals, snow, rain, motes ----- */
+const cv=$('#fx'),cx=cv.getContext('2d');let P=[],raf;
+const RM=matchMedia('(prefers-reduced-motion:reduce)').matches;
+function size(){cv.width=innerWidth;cv.height=innerHeight}addEventListener('resize',size);size();
+const COL=['#B5503C','#D9826F','#C4A45B','#A0482F','#E0A24A'];
+function mk(init){return{x:Math.random()*cv.width,y:init?Math.random()*cv.height:-30,s:Math.random()*.9+.7,a:Math.random()*6.28,w:Math.random()*.03+.01,
+ sz:Math.random()*14+13,c:COL[Math.floor(Math.random()*COL.length)],r:Math.random()*2+1.3,t:Math.random()*6}}
+function initFX(){cancelAnimationFrame(raf);cx.clearRect(0,0,cv.width,cv.height);P=[];if(RM)return;
+ const n=FX==='rain'?120:FX==='snow'?90:FX==='leaf'?34:FX==='petal'?30:28;for(let i=0;i<n;i++)P.push(mk(true));loop()}
+function leaf(p){cx.save();cx.translate(p.x,p.y);cx.rotate(p.a);cx.scale(1,.55+.45*Math.cos(p.t));cx.fillStyle=p.c;cx.globalAlpha=.9;cx.beginPath();
+ for(let i=0;i<5;i++){const t=i*1.2566-1.57;cx.lineTo(Math.cos(t)*p.sz*.55,Math.sin(t)*p.sz*.55);cx.lineTo(Math.cos(t+.63)*p.sz*.24,Math.sin(t+.63)*p.sz*.24)}
+ cx.closePath();cx.fill();cx.strokeStyle='rgba(60,25,15,.45)';cx.lineWidth=.8;cx.beginPath();cx.moveTo(0,-p.sz*.5);cx.lineTo(0,p.sz*.35);cx.stroke();cx.restore()}
+function loop(){cx.clearRect(0,0,cv.width,cv.height);
+ P.forEach(p=>{p.a+=p.w;p.t+=.04;
+  if(FX==='rain'){p.y+=p.s*13;p.x-=1.6;cx.strokeStyle='rgba(244,240,229,.4)';cx.lineWidth=1;cx.beginPath();cx.moveTo(p.x,p.y);cx.lineTo(p.x+1.6,p.y-13);cx.stroke()}
+  else if(FX==='snow'){p.y+=p.s*.9;p.x+=Math.sin(p.a*4)*.5;cx.fillStyle='rgba(255,255,255,.9)';cx.beginPath();cx.arc(p.x,p.y,p.r,0,6.28);cx.fill()}
+  else if(FX==='petal'){p.y+=p.s*.8;p.x+=Math.sin(p.a*3)*.9;cx.fillStyle='rgba(240,185,195,.85)';cx.beginPath();cx.ellipse(p.x,p.y,p.r*2.2,p.r*1.2,p.a,0,6.28);cx.fill()}
+  else if(FX==='mote'){p.y-=p.s*.3;p.x+=Math.sin(p.a*3)*.5;const g=cx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r*4);g.addColorStop(0,'rgba(255,236,160,.8)');g.addColorStop(1,'rgba(255,236,160,0)');cx.fillStyle=g;cx.beginPath();cx.arc(p.x,p.y,p.r*4,0,6.28);cx.fill();if(p.y<-20){p.y=cv.height+20}}
+  else{p.y+=p.s*.9;p.x+=Math.sin(p.a*2)*.9+.2;leaf(p)}
+  if(FX!=='mote'&&(p.y>cv.height+30||p.x<-30||p.x>cv.width+30)){Object.assign(p,mk(false))}});
+ raf=requestAnimationFrame(loop)}
+document.addEventListener('visibilitychange',()=>document.hidden?cancelAnimationFrame(raf):initFX());
+</script>
+</body>
+</html>
